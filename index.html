@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#090b12">
+<title>NOIR PIANO</title>
+<style>
+:root{--bg:#090b12;--panel:#121722;--gold:#d9b779;--muted:#8791a4;--white:#f4f1e9}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:radial-gradient(ellipse at 50% -20%,#253044 0%,#0d111b 48%,#07090e 100%);color:var(--white);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh;overflow-x:hidden}
+.app{max-width:1100px;margin:auto;padding:22px 16px 30px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+.brand{font-size:13px;letter-spacing:.32em;font-weight:800;color:var(--gold)}
+.status{font-size:10px;letter-spacing:.16em;color:#9da8b8}
+h1{font-size:clamp(27px,6vw,48px);letter-spacing:-.045em;margin:0;font-weight:650}
+.sub{color:var(--muted);font-size:13px;margin:7px 0 22px}
+.panel{background:linear-gradient(145deg,rgba(28,36,51,.92),rgba(13,17,26,.96));border:1px solid #293244;border-radius:20px;padding:16px;box-shadow:0 18px 60px #0007}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:15px}
+button,select{background:#202a3a;border:1px solid #344157;color:#edf0f5;border-radius:12px;padding:11px 14px;font-size:12px;font-weight:650}
+button:active{transform:scale(.97)}
+button.active{background:#4a3b26;border-color:var(--gold);color:#f4d9a8}
+select{outline:none}
+.control-label{font-size:10px;color:var(--muted);letter-spacing:.12em;margin-right:2px}
+.spacer{flex:1}
+.range{width:100px;accent-color:var(--gold)}
+.piano-wrap{position:relative;overflow-x:auto;overflow-y:hidden;border-radius:14px;background:#080a0f;padding:12px 10px 10px;scrollbar-width:thin;scrollbar-color:#45516a #111722}
+.keyboard{position:relative;height:245px;min-width:900px;display:flex;touch-action:pan-x;user-select:none}
+.key{position:relative;flex:1;border-radius:0 0 8px 8px;cursor:pointer}
+.white{height:245px;background:linear-gradient(90deg,#d9dce1,#fff 18%,#f1f0ec 78%,#c8cbd1);border:1px solid #aeb3bd;box-shadow:inset 0 -7px 0 #c5c8ce,0 3px 4px #0008;z-index:1}
+.white.down{background:linear-gradient(#d8c8a9,#f0e5d0);transform:translateY(2px);box-shadow:inset 0 -3px 0 #b69a6c}
+.black{position:absolute;top:0;right:-17px;width:34px;height:150px;z-index:3;background:linear-gradient(90deg,#080a0e,#303744 35%,#11151d 85%,#050609);border:1px solid #020307;border-radius:0 0 6px 6px;box-shadow:0 7px 10px #000a;cursor:pointer}
+.black.down{background:linear-gradient(90deg,#5a482d,#b18d55,#49391f);height:153px}
+.note{position:absolute;bottom:11px;left:0;right:0;text-align:center;color:#7b8492;font-size:10px;pointer-events:none}
+.black .note{color:#87909e;bottom:8px;font-size:9px}
+.bottom{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:16px;color:var(--muted);font-size:11px}
+.readout{color:var(--gold);font-variant-numeric:tabular-nums}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+.small{padding:9px 12px}
+.info{margin-top:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.info div{background:#111722;border:1px solid #252f40;border-radius:13px;padding:12px}
+.info b{display:block;font-size:10px;color:var(--gold);letter-spacing:.13em;margin-bottom:5px}
+.info span{font-size:11px;color:#aab3c2}
+footer{text-align:center;color:#667184;font-size:10px;letter-spacing:.12em;margin-top:22px}
+@media(max-width:520px){.app{padding:18px 12px}.keyboard{height:218px}.white{height:218px}.black{height:133px}.info{grid-template-columns:1fr 1fr}.panel{padding:12px}.range{width:76px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div class="brand">NOIR / INSTRUMENTS</div><div class="status">MOBILE PIANO · V1.0</div></header>
+<h1>NOIR PIANO</h1>
+<div class="sub">A quiet room. An endless piano.</div>
+<section class="panel">
+ <div class="controls">
+  <button id="octDown" aria-label="Lower octave">− OCT</button>
+  <span class="control-label" id="octLabel">OCTAVE 4</span>
+  <button id="octUp" aria-label="Raise octave">+ OCT</button>
+  <span class="spacer"></span>
+  <button id="sustain" class="small">SUSTAIN OFF</button><button id="testSound" class="small active">TEST SOUND</button>
+ </div>
+ <div class="controls">
+  <span class="control-label">VOLUME</span><input id="volume" class="range" type="range" min="0" max="100" value="72">
+  <span class="control-label">TONE</span>
+  <select id="tone"><option value="concert">Concert Grand</option><option value="soft">Soft Felt</option><option value="bright">Bright Stage</option></select>
+  <span class="spacer"></span>
+  <button id="record" class="small">● REC</button><button id="play" class="small">▶ PLAY</button>
+ </div>
+ <div class="piano-wrap" id="pianoWrap"><div class="keyboard" id="keyboard"></div></div>
+ <div class="bottom"><div>NOTE <span class="readout" id="lastNote">—</span></div><div class="tools"><button id="clear" class="small">CLEAR</button><button id="metronome" class="small">METRONOME OFF</button></div></div>
+</section>
+<div class="info">
+ <div><b>TOUCH</b><span>Tap keys · swipe left/right to move</span></div>
+ <div><b>RANGE</b><span>3 octaves · shift octave anytime</span></div>
+ <div><b>PERFORMANCE</b><span>Sustain, record and replay</span></div>
+</div>
+<footer>DESIGNED FOR HEADPHONES · BEST WITH SOUND ON</footer>
+</div>
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+let audio=null,master=null,oct=4,sustain=false,recording=false,events=[],startTime=0,held=new Map(),sustained=[],metroTimer=null,metroOn=false;
+const names=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+function initAudio(){if(audio)return;const AC=window.AudioContext||window.webkitAudioContext;audio=new AC();master=audio.createGain();master.gain.value=.72;master.connect(audio.destination)}
+function freq(midi){return 440*Math.pow(2,(midi-69)/12)}
+function pianoVoice(midi,vel=0.8){
+ initAudio();if(audio.state==='suspended')audio.resume();
+ const now=audio.currentTime, f=freq(midi), tone=$('tone').value;
+ const out=audio.createGain();out.gain.setValueAtTime(0,now);out.gain.linearRampToValueAtTime(vel*.48,now+.018);out.gain.exponentialRampToValueAtTime(.0001,now+(tone==='soft'?3.8:2.7));out.connect(master);
+ const partials=tone==='soft'?[1,.22,.08,.025]:tone==='bright'?[1,.48,.2,.08,.025]:[1,.34,.13,.045,.015];
+ const oscs=[];
+ partials.forEach((amp,i)=>{const o=audio.createOscillator(),g=audio.createGain();o.type='triangle';o.frequency.value=f*(i+1);g.gain.value=amp/(i+1);o.connect(g);g.connect(out);o.start(now);oscs.push(o)});
+ const stop=()=>{const t=audio.currentTime;out.gain.cancelScheduledValues(t);out.gain.setTargetAtTime(.0001,t,.22);oscs.forEach(o=>{try{o.stop(t+1)}catch(e){}})};
+ return {stop,out};
+}
+function midiFor(idx){return (oct+1)*12+idx}
+function noteName(m){return names[m%12]+(Math.floor(m/12)-1)}
+function build(){
+ const kb=$('keyboard');kb.innerHTML='';
+ for(let i=0;i<36;i++){
+  const m=midiFor(i),name=noteName(m),isBlack=names[m%12].includes('#');
+  if(isBlack)continue;
+  const key=document.createElement('div');key.className='key white';key.dataset.midi=m;key.innerHTML='<span class="note">'+name+'</span>';kb.appendChild(key);
+ }
+ // Overlay black keys positioned against the 21 white keys in three octaves.
+ const whites=[...kb.children];let whiteIndex=0;
+ for(let i=0;i<36;i++){
+  const m=midiFor(i);if(!names[m%12].includes('#')){whiteIndex++;continue}
+  const key=document.createElement('div');key.className='key black';key.dataset.midi=m;
+  key.style.left=`calc(${whiteIndex} * (100% / 21) - 17px)`;key.innerHTML='<span class="note">'+noteName(m)+'</span>';kb.appendChild(key);
+ }
+ kb.style.minWidth='900px';
+}
+function press(el){
+ const m=+el.dataset.midi;if(held.has(m))return;
+ const voice=pianoVoice(m);held.set(m,{voice,el});el.classList.add('down');
+ $('lastNote').textContent=noteName(m);
+ if(recording)events.push({m,t:performance.now()-startTime});
+}
+function release(m){
+ const v=held.get(m);if(!v)return;held.delete(m);v.el.classList.remove('down');
+ if(sustain)sustained.push(v.voice);else v.voice.stop();
+}
+const kb=$('keyboard');
+kb.addEventListener('pointerdown',e=>{const el=e.target.closest('.key');if(!el)return;press(el)});
+window.addEventListener('pointerup',()=>[...held.keys()].forEach(release));
+window.addEventListener('pointercancel',()=>[...held.keys()].forEach(release));
+function refreshOct(){ $('octLabel').textContent='OCTAVE '+oct;build(); }
+$('octDown').onclick=()=>{if(oct>2){oct--;refreshOct()}};
+$('octUp').onclick=()=>{if(oct<6){oct++;refreshOct()}};
+$('sustain').onclick=()=>{sustain=!sustain;$('sustain').textContent='SUSTAIN '+(sustain?'ON':'OFF');$('sustain').classList.toggle('active',sustain);if(!sustain){sustained.forEach(v=>v.stop());sustained=[]}};
+$('testSound').onclick=()=>{initAudio();if(audio.state==='suspended')audio.resume();const v=pianoVoice(69,.95);setTimeout(()=>v.stop(),1200);$('testSound').textContent='SOUND OK';setTimeout(()=>$('testSound').textContent='TEST SOUND',1300)};
+$('volume').oninput=e=>{if(master)master.gain.value=+e.target.value/100};
+$('record').onclick=()=>{recording=!recording;if(recording){events=[];startTime=performance.now();$('record').textContent='■ STOP';$('record').classList.add('active')}else{$('record').textContent='● REC';$('record').classList.remove('active')}};
+$('play').onclick=()=>{if(!events.length)return;initAudio();const list=[...events];list.forEach(ev=>setTimeout(()=>{const v=pianoVoice(ev.m,.7);setTimeout(()=>v.stop(),650)},ev.t))};
+$('clear').onclick=()=>{events=[];recording=false;$('record').textContent='● REC';$('record').classList.remove('active')};
+$('metronome').onclick=()=>{metroOn=!metroOn;$('metronome').textContent='METRONOME '+(metroOn?'ON':'OFF');$('metronome').classList.toggle('active',metroOn);if(metroTimer)clearInterval(metroTimer);if(metroOn){initAudio();metroTimer=setInterval(()=>{const o=audio.createOscillator(),g=audio.createGain();o.frequency.value=1000;g.gain.setValueAtTime(.12,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.06);o.connect(g);g.connect(master);o.start();o.stop(audio.currentTime+.07)},600)}};
+build();
+})();
+</script>
+</body></html>
